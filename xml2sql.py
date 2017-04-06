@@ -1,33 +1,36 @@
 import xml.parsers.expat
+import time
 from sys import stdout
 from pprint import pprint
+from subprocess import check_output
+from tqdm import tqdm
 
-xmlFile = '../Posts.xml'
 xmlFile = '../posts-head.xml'
+xmlFile = '../Posts.xml'
 # tag = 'posts'
+lines = int(check_output(['countlines/countlines.sh', xmlFile, "10000"]))
+progress = tqdm(total=lines)
+progress.unit_scale = True
 
-i = 0
+parsed = 0
 
 def start_element(name, attrs):
-    pprint(['Start element:', name, attrs])
+    # pprint({name: attrs})
     pass
 
 def end_element(name):
-    global i
-    i += 1
-    pprint(['End element:', name])
-    # stdout.write('.')
-    # stdout.write("%.2f%%\r" % (1e2 * (i / 50e6)))
+    global progress
+    # pprint(['End element:', name])
+    progress.update(1) # +1
 
 def character_data(data):
-    pprint(['Character data:', data])
+    pprint({'Character data:': data})
 
 parser = xml.parsers.expat.ParserCreate()
 parser.StartElementHandler = start_element
 parser.EndElementHandler = end_element
-parser.buffer_text = True
-parser.buffer_size = 2 ** 16
 # parser.CharacterDataHandler = character_data
+parser.buffer_text = True
 
 with open(xmlFile, 'rb') as file:
     parser.ParseFile(file)
